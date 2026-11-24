@@ -971,6 +971,118 @@
     .mobile-nav { display: flex; }
     main { padding-bottom: 100px; }
   }
+
+  /* ====== RESALTADO DE LECTURA ====== */
+  mark.hl {
+    background: linear-gradient(0deg, rgba(201,168,106,0.38), rgba(201,168,106,0.38));
+    color: inherit;
+    border-radius: 3px;
+    padding: 1px 2px;
+    box-shadow: inset 0 -2px 0 rgba(201,168,106,0.55);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  mark.hl:hover { background: rgba(201,168,106,0.55); }
+  #view-case.kindle mark.hl {
+    background: rgba(214,179,92,0.45);
+    box-shadow: inset 0 -2px 0 rgba(166,133,46,0.6);
+    color: #2f2a20;
+  }
+  #hlPopup {
+    position: absolute;
+    z-index: 999;
+    display: none;
+    background: var(--bg-3, #1b1813);
+    border: 1px solid var(--line-strong, #3a332a);
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+    padding: 5px;
+    gap: 4px;
+  }
+  #hlPopup.show { display: flex; }
+  #hlPopup button {
+    cursor: pointer;
+    font-family: var(--mono, monospace);
+    font-size: 12px;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 12px;
+    background: var(--accent, #c9a86a);
+    color: var(--bg, #14110c);
+    white-space: nowrap;
+  }
+  #hlPopup button.ghost {
+    background: transparent;
+    color: var(--ink-dim, #b7ad9a);
+    border: 1px solid var(--line-strong, #3a332a);
+  }
+  /* ====== SECCIÓN RESÚMENES ====== */
+  .res-mod { margin-bottom: 30px; }
+  .res-mod-title {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    color: var(--accent);
+    margin: 0 0 4px;
+  }
+  .res-case-group { margin: 14px 0 6px; }
+  .res-case-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-low, #8a8172);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .res-case-title a {
+    color: var(--accent-2, #c9a86a);
+    text-decoration: none;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  .res-item {
+    background: var(--bg-2, #1b1813);
+    border: 1px solid var(--line, #2a251e);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .res-item p {
+    margin: 0;
+    flex: 1;
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink, #ece4d6);
+  }
+  .res-item .res-del {
+    flex-shrink: 0;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--ink-low);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .res-item .res-del:hover { color: var(--accent-3, #a8746a); border-color: var(--accent-3, #a8746a); }
+  .res-empty {
+    text-align: center;
+    color: var(--ink-dim);
+    padding: 50px 20px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
 </style>
 </head>
 <body>
@@ -989,6 +1101,7 @@
       <button data-view="podcast">Podcast</button>
       <button data-view="quiz">Tests GMAT/EA</button>
       <button data-view="badges">Logros</button>
+      <button data-view="resumenes">Mis resúmenes</button>
       <button data-view="profs">Faculty</button>
     </nav>
     <div class="player-chip">
@@ -1005,6 +1118,7 @@
 
 <!-- ============ DASHBOARD ============ -->
 <section class="view active" id="view-dashboard">
+  <div id="resumeBanner" style="display:none;"></div>
   <div class="hero-row">
     <div class="hero-card">
       <div class="hero-label">Curso · 2026 · Cohorte privada</div>
@@ -1180,7 +1294,23 @@
   <div class="profs-grid" id="profsGrid"></div>
 </section>
 
+<!-- ============ MIS RESÚMENES ============ -->
+<section class="view" id="view-resumenes">
+  <div class="section-head">
+    <h2 class="section-title">Mis <em>resúmenes</em></h2>
+    <span class="section-meta" id="resCount"></span>
+  </div>
+  <p style="color: var(--ink-dim); max-width: 700px; margin-bottom: 24px; line-height: 1.6; font-size: 14px;">Todo lo que resaltaste mientras leías, junto en un solo lugar. Mientras leés un caso, seleccioná con el dedo o el mouse la frase que quieras guardar y tocá <strong style="color:var(--accent);">✨ Resaltar</strong>. Acá lo vas a encontrar siempre, ordenado por módulo y caso.</p>
+  <div id="resumenesList"></div>
+</section>
+
 </main>
+
+<!-- BOTÓN FLOTANTE DE RESALTADO -->
+<div id="hlPopup">
+  <button id="hlAdd" onclick="crearResaltado()">✨ Resaltar</button>
+  <button id="hlDel" class="ghost" onclick="quitarResaltadoActivo()">✕ Quitar</button>
+</div>
 
 <!-- MOBILE NAV -->
 <nav class="mobile-nav">
@@ -1189,6 +1319,7 @@
   <button data-view="podcast"><span>▶</span>Podcast</button>
   <button data-view="quiz"><span>?</span>Test</button>
   <button data-view="badges"><span>★</span>Logros</button>
+  <button data-view="resumenes"><span>✎</span>Resumen</button>
   <button data-view="profs"><span>⌘</span>Faculty</button>
 </nav>
 
@@ -2119,6 +2250,8 @@ let state = {
   sesiones: 0,           // cantidad de sesiones de estudio
   diasPorFecha: {},      // segundos estudiados por fecha (YYYY-MM-DD)
   kindleMode: false,     // modo lectura papel (descansa la vista)
+  highlights: [],        // frases resaltadas durante la lectura
+  lastRead: null,        // último punto de lectura (caso, sección y scroll)
 };
 
 // ============ NUBE (Firebase: acceso con mail + avance por usuario) ============
@@ -2447,6 +2580,7 @@ function renderDashboard() {
   document.getElementById('playerName').textContent = state.name;
   document.getElementById('avatarInitial').textContent = state.name.charAt(0).toUpperCase();
   document.getElementById('todayDate').textContent = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+  renderResumeBanner();
 
   const grid = document.getElementById('questGrid');
   grid.innerHTML = DAILY_QUESTS.map((q, i) => `
@@ -2516,6 +2650,18 @@ function renderModuleCases(id) {
 function showCase(moduleId, caseIdx) {
   const c = CASES[moduleId][caseIdx];
   if (!c) return;
+  const _mod = MODULES.find(m => m.id === moduleId);
+  window.__currentCase = { moduleId, caseIdx, caseTitle: c.title, moduleTitle: _mod ? _mod.title : moduleId };
+  const _mismaLectura = state.lastRead && state.lastRead.moduleId === moduleId && state.lastRead.caseIdx === caseIdx;
+  state.lastRead = {
+    moduleId, caseIdx,
+    caseTitle: c.title,
+    moduleTitle: _mod ? _mod.title : moduleId,
+    section: _mismaLectura ? state.lastRead.section : 'ls-teoria',
+    scrollY: _mismaLectura ? state.lastRead.scrollY : 0,
+    ts: Date.now()
+  };
+  guardarLectura();
   const isDone = state.doneCases.includes(`${moduleId}-${caseIdx}`);
 
   // Navegador de casos del módulo (para saltar directo a cualquiera)
@@ -2651,6 +2797,7 @@ function showCase(moduleId, caseIdx) {
   }
   aplicarKindle();
   setView('case');
+  aplicarResaltados();
 }
 
 function aplicarKindle() {
@@ -2672,6 +2819,7 @@ function showLessonSection(name, btnEl) {
   document.querySelectorAll('.lesson-tab').forEach(b => b.classList.remove('active'));
   if (btnEl) btnEl.classList.add('active');
   document.getElementById('caseContent').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (state.lastRead) { state.lastRead.section = 'ls-' + name; state.lastRead.ts = Date.now(); guardarLectura(); }
 }
 
 function renderMaterial(material) {
@@ -4071,6 +4219,7 @@ function setView(name) {
   if (name === 'dashboard') renderDashboard();
   if (name === 'modules') renderModules();
   if (name === 'badges') renderBadges();
+  if (name === 'resumenes') renderResumenes();
   if (name === 'profs') renderProfs();
   if (name === 'quiz') { restartQuiz(); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4079,6 +4228,277 @@ function setView(name) {
 document.querySelectorAll('.nav button, .mobile-nav button').forEach(b => {
   b.addEventListener('click', () => setView(b.dataset.view));
 });
+
+// ============ RESALTADO DE LECTURA ============
+const SEC_LABELS = {
+  'ls-teoria': 'Teoría', 'ls-material': 'Expertos', 'ls-ejemplo': 'Ejemplo',
+  'ls-plantilla': 'Tu trabajo', 'ls-solucion': 'Solución', 'ls-learning': 'Cierre',
+  'general': 'Caso'
+};
+
+// Envuelve un rango del DOM en <mark class="hl">
+function _marcarRango(range, id) {
+  const mark = document.createElement('mark');
+  mark.className = 'hl';
+  mark.dataset.hlid = id;
+  try {
+    range.surroundContents(mark);
+  } catch (e) {
+    try { mark.appendChild(range.extractContents()); range.insertNode(mark); }
+    catch (e2) { return null; }
+  }
+  return mark;
+}
+
+// Busca un texto dentro de un contenedor y lo resalta (para re-aplicar al reabrir)
+function _buscarYMarcar(container, text, id) {
+  if (!container || !text) return false;
+  const full = container.textContent;
+  const idx = full.indexOf(text);
+  if (idx < 0) return false;
+  const end = idx + text.length;
+  const range = document.createRange();
+  let pos = 0, started = false;
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+  let node;
+  while ((node = walker.nextNode())) {
+    // no re-marcar dentro de un resaltado ya existente
+    const nlen = node.textContent.length;
+    if (!started && idx >= pos && idx < pos + nlen) { range.setStart(node, idx - pos); started = true; }
+    if (started && end > pos && end <= pos + nlen) { range.setEnd(node, end - pos); break; }
+    pos += nlen;
+  }
+  if (!started) return false;
+  return !!_marcarRango(range, id);
+}
+
+// Re-aplica los resaltados guardados al abrir un caso
+function aplicarResaltados() {
+  const cc = window.__currentCase;
+  if (!cc) return;
+  const propios = (state.highlights || []).filter(h => h.moduleId === cc.moduleId && h.caseIdx === cc.caseIdx);
+  propios.forEach(h => {
+    let cont = null;
+    if (h.section && h.section !== 'general') cont = document.getElementById(h.section);
+    if (!cont) cont = document.getElementById('caseContent');
+    _buscarYMarcar(cont, h.text, h.id);
+  });
+}
+
+// Estado del botón flotante
+let _hlPending = null;   // selección pendiente de resaltar
+let _hlActiveMark = null; // mark clickeado para quitar
+
+function _posicionarPopup(rect) {
+  const pop = document.getElementById('hlPopup');
+  if (!pop) return;
+  pop.classList.add('show');
+  const pw = pop.offsetWidth || 150, ph = pop.offsetHeight || 40;
+  let left = rect.left + window.scrollX + (rect.width / 2) - (pw / 2);
+  let top = rect.top + window.scrollY - ph - 8;
+  left = Math.max(8, Math.min(left, window.scrollX + document.documentElement.clientWidth - pw - 8));
+  if (top < window.scrollY + 4) top = rect.bottom + window.scrollY + 8; // si no entra arriba, va abajo
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+}
+
+function _ocultarPopup() {
+  const pop = document.getElementById('hlPopup');
+  if (pop) pop.classList.remove('show');
+  _hlPending = null;
+  _hlActiveMark = null;
+}
+
+function _mostrarPopupAgregar(range, text, sectionId, rect) {
+  _hlPending = { range: range.cloneRange(), text, sectionId };
+  _hlActiveMark = null;
+  document.getElementById('hlAdd').style.display = '';
+  document.getElementById('hlDel').style.display = 'none';
+  _posicionarPopup(rect);
+}
+
+function _mostrarPopupQuitar(mark) {
+  _hlActiveMark = mark;
+  _hlPending = null;
+  document.getElementById('hlAdd').style.display = 'none';
+  document.getElementById('hlDel').style.display = '';
+  _posicionarPopup(mark.getBoundingClientRect());
+}
+
+// Detecta selección de texto dentro de la lectura
+function _chequearSeleccion() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const text = sel.toString().trim();
+  if (text.length < 3) return;
+  const range = sel.getRangeAt(0);
+  const anchor = range.commonAncestorContainer;
+  const el = (anchor.nodeType === 1 ? anchor : anchor.parentElement);
+  const sectionEl = el && el.closest ? el.closest('.lesson-section, .case-section') : null;
+  if (!sectionEl) return; // solo dentro del contenido del caso
+  // evitar resaltar algo que ya está dentro de un resaltado
+  if (el.closest && el.closest('mark.hl')) return;
+  _mostrarPopupAgregar(range, text, sectionEl.id || 'general', range.getBoundingClientRect());
+}
+
+function crearResaltado() {
+  if (!_hlPending) { _ocultarPopup(); return; }
+  const cc = window.__currentCase;
+  if (!cc) { _ocultarPopup(); return; }
+  const id = 'h' + Date.now() + Math.floor(Math.random() * 1000);
+  const ok = _marcarRango(_hlPending.range, id);
+  if (!ok) { _ocultarPopup(); showToast('⚠', 'No pude resaltar eso', 'Probá seleccionando una frase más corta'); return; }
+  state.highlights = state.highlights || [];
+  state.highlights.push({
+    id,
+    moduleId: cc.moduleId,
+    caseIdx: cc.caseIdx,
+    caseTitle: cc.caseTitle,
+    moduleTitle: cc.moduleTitle,
+    section: _hlPending.sectionId,
+    sectionLabel: SEC_LABELS[_hlPending.sectionId] || 'Caso',
+    text: _hlPending.text,
+    ts: Date.now()
+  });
+  saveState();
+  const s = window.getSelection(); if (s) s.removeAllRanges();
+  _ocultarPopup();
+  showToast('✨', 'Resaltado guardado', 'Lo ves en "Mis resúmenes"');
+}
+
+function quitarResaltadoActivo() {
+  if (!_hlActiveMark) { _ocultarPopup(); return; }
+  const id = _hlActiveMark.dataset.hlid;
+  // sacar el <mark> pero dejar el texto
+  const parent = _hlActiveMark.parentNode;
+  while (_hlActiveMark.firstChild) parent.insertBefore(_hlActiveMark.firstChild, _hlActiveMark);
+  parent.removeChild(_hlActiveMark);
+  parent.normalize();
+  state.highlights = (state.highlights || []).filter(h => h.id !== id);
+  saveState();
+  _ocultarPopup();
+  showToast('✕', 'Resaltado quitado', '');
+}
+
+function eliminarResaltado(id) {
+  state.highlights = (state.highlights || []).filter(h => h.id !== id);
+  saveState();
+  // si el caso está abierto, quitar el mark visible
+  const m = document.querySelector('mark.hl[data-hlid="' + id + '"]');
+  if (m) { const p = m.parentNode; while (m.firstChild) p.insertBefore(m.firstChild, m); p.removeChild(m); p.normalize(); }
+  renderResumenes();
+}
+
+function renderResumenes() {
+  const cont = document.getElementById('resumenesList');
+  const countEl = document.getElementById('resCount');
+  if (!cont) return;
+  const hs = (state.highlights || []).slice().sort((a, b) => a.ts - b.ts);
+  if (countEl) countEl.textContent = hs.length ? (hs.length + (hs.length === 1 ? ' resaltado' : ' resaltados')) : '';
+  if (!hs.length) {
+    cont.innerHTML = `<div class="res-empty">Todavía no resaltaste nada.<br>Abrí cualquier caso, seleccioná una frase que te sirva y tocá <strong style="color:var(--accent);">✨ Resaltar</strong>. Acá se va juntando todo lo que marques.</div>`;
+    return;
+  }
+  // agrupar por módulo -> caso
+  const porMod = {};
+  hs.forEach(h => {
+    const mk = h.moduleId;
+    (porMod[mk] = porMod[mk] || { title: h.moduleTitle, casos: {} });
+    const ck = h.caseIdx;
+    (porMod[mk].casos[ck] = porMod[mk].casos[ck] || { title: h.caseTitle, items: [] });
+    porMod[mk].casos[ck].items.push(h);
+  });
+  let html = '';
+  Object.keys(porMod).forEach(mk => {
+    const mod = porMod[mk];
+    html += `<div class="res-mod"><div class="res-mod-title">${mod.title}</div>`;
+    Object.keys(mod.casos).forEach(ck => {
+      const caso = mod.casos[ck];
+      html += `<div class="res-case-group">
+        <div class="res-case-title">${caso.title} <a href="javascript:void(0)" onclick="showCase('${mk}', ${ck})">abrir caso →</a></div>`;
+      caso.items.forEach(h => {
+        const txt = h.text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        html += `<div class="res-item">
+          <p>${txt}<br><span style="font-family:var(--mono); font-size:10px; color:var(--ink-low); text-transform:uppercase; letter-spacing:0.1em;">${h.sectionLabel || ''}</span></p>
+          <button class="res-del" title="Quitar" onclick="eliminarResaltado('${h.id}')">✕</button>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  cont.innerHTML = html;
+}
+
+// Listeners globales del resaltador
+document.addEventListener('mouseup', (e) => {
+  if (e.target.closest && e.target.closest('#hlPopup')) return;
+  if (e.target.closest && e.target.closest('mark.hl')) { _mostrarPopupQuitar(e.target.closest('mark.hl')); return; }
+  setTimeout(_chequearSeleccion, 10);
+});
+document.addEventListener('touchend', (e) => {
+  if (e.target.closest && e.target.closest('#hlPopup')) return;
+  if (e.target.closest && e.target.closest('mark.hl')) { _mostrarPopupQuitar(e.target.closest('mark.hl')); return; }
+  setTimeout(_chequearSeleccion, 10);
+}, { passive: true });
+document.addEventListener('mousedown', (e) => {
+  if (e.target.closest && (e.target.closest('#hlPopup') || e.target.closest('mark.hl'))) return;
+  _ocultarPopup();
+});
+document.addEventListener('scroll', _ocultarPopup, true);
+
+// ============ SEGUIR LEYENDO (retomar la lectura) ============
+const SEC_ORDER = ['teoria', 'material', 'ejemplo', 'plantilla', 'solucion', 'learning'];
+let _guardarLecturaTimer = null;
+function guardarLectura() {
+  clearTimeout(_guardarLecturaTimer);
+  _guardarLecturaTimer = setTimeout(saveState, 1200);
+}
+function hayLecturaPendiente() {
+  const r = state.lastRead;
+  return !!(r && r.moduleId != null && CASES[r.moduleId] && CASES[r.moduleId][r.caseIdx]);
+}
+function resumeReading() {
+  if (!hayLecturaPendiente()) return;
+  const r = state.lastRead;
+  const savedSection = r.section || 'ls-teoria';
+  const savedY = r.scrollY || 0;
+  showCase(r.moduleId, r.caseIdx);
+  const name = savedSection.replace('ls-', '');
+  const idx = SEC_ORDER.indexOf(name);
+  if (idx >= 0) {
+    const btn = document.querySelectorAll('.lesson-tab')[idx];
+    if (btn) showLessonSection(name, btn);
+  }
+  setTimeout(() => { window.scrollTo(0, savedY); }, 180);
+}
+function renderResumeBanner() {
+  const el = document.getElementById('resumeBanner');
+  if (!el) return;
+  if (!hayLecturaPendiente()) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  const r = state.lastRead;
+  el.style.display = '';
+  el.innerHTML = `<div style="background:linear-gradient(135deg, rgba(201,168,106,0.14), rgba(184,153,104,0.07)); border:1px solid var(--line-strong); border-radius:14px; padding:16px 18px; margin-bottom:22px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+    <div style="flex:1; min-width:200px;">
+      <div style="font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.18em; color:var(--accent); margin-bottom:5px;">Seguí donde lo dejaste</div>
+      <div style="font-family:var(--serif); font-size:1.08rem; line-height:1.3;">${r.caseTitle}</div>
+      <div style="font-size:0.78rem; color:var(--ink-dim); margin-top:2px;">${r.moduleTitle} · ${SEC_LABELS[r.section] || 'Teoría'}</div>
+    </div>
+    <button class="btn" onclick="resumeReading()" style="flex-shrink:0;">▶ Seguir leyendo</button>
+  </div>`;
+}
+// Seguimiento del scroll mientras lee
+let _ultScrollGuardado = 0;
+window.addEventListener('scroll', () => {
+  const vc = document.getElementById('view-case');
+  if (!vc || !vc.classList.contains('active') || !state.lastRead) return;
+  state.lastRead.scrollY = window.scrollY || window.pageYOffset || 0;
+  const now = Date.now();
+  if (now - _ultScrollGuardado > 500) { _ultScrollGuardado = now; guardarLectura(); }
+});
+// Guardar al salir / cambiar de pestaña del navegador
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { try { saveState(); } catch (e) {} } });
+window.addEventListener('pagehide', () => { try { saveState(); } catch (e) {} });
 
 // ============ INIT ============
 (async function init() {
@@ -4090,12 +4510,20 @@ document.querySelectorAll('.nav button, .mobile-nav button').forEach(b => {
   iniciarConteo();
   initNube();
 
-  // welcome toast
-  setTimeout(() => {
-    if (state.doneQuests.length === 0 && state.doneCases.length === 0) {
-      showToast('🎓', 'Bienvenido al EMBA·AR', 'Empezá con la misión diaria');
-    }
-  }, 800);
+  // Si venía leyendo, abrir directo donde lo dejó
+  if (hayLecturaPendiente()) {
+    setTimeout(() => {
+      resumeReading();
+      showToast('📖', 'Seguí donde lo dejaste', state.lastRead.caseTitle);
+    }, 200);
+  } else {
+    // welcome toast (solo para quien todavía no empezó)
+    setTimeout(() => {
+      if (state.doneQuests.length === 0 && state.doneCases.length === 0) {
+        showToast('🎓', 'Bienvenido al EMBA·AR', 'Empezá con la misión diaria');
+      }
+    }, 800);
+  }
 })();
 </script>
 </body>
